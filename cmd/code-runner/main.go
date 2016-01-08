@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/maddyonline/code-runner"
+	"github.com/maddyonline/code"
 )
 
 const stdin = `{
@@ -25,6 +25,7 @@ func main() {
 	flag.StringVar(&pathToRunner, "runner", ".", "path to runner binary")
 	flag.Parse()
 	runner := code.NewRunner(pathToRunner)
+
 	input := &code.Input{}
 	err := json.Unmarshal([]byte(stdin), input)
 	if err != nil {

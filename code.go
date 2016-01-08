@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/labstack/gommon/log"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -28,7 +29,6 @@ type Output struct {
 
 type Runner struct {
 	RunnerBinary string
-	Verbose      bool
 }
 
 func NewRunner(pathToRunner string) *Runner {
@@ -50,10 +50,7 @@ func (r *Runner) Run(input *Input) (*Output, error) {
 		"-v", fmt.Sprintf("%s:/runner", runnerDir), // Mounted Runner Directory
 		"-w", "/app", "rsmmr/clang",
 		runnerBinary}
-	if r.Verbose {
-		fmt.Println("Running...")
-		fmt.Printf("%s", strings.Join(args, " "))
-	}
+	log.Info("Cmd: %s", strings.Join(args, " "))
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd := exec.Command(args[0], args[1:]...)

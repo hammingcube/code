@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
-	"github.com/maddyonline/code-runner"
+	"github.com/maddyonline/code"
 	"io/ioutil"
 	"net/http"
 )
@@ -30,10 +30,15 @@ func decodeJsonPayload(r *http.Request, v interface{}) error {
 
 func main() {
 	var pathToRunner string
+	var debug bool
 	flag.StringVar(&pathToRunner, "runner", ".", "path to runner binary")
+	flag.BoolVar(&debug, "debug", false, "debug mode")
 	flag.Parse()
-	runner := code.NewRunner(pathToRunner)
+	if debug {
+		log.SetLevel(log.DEBUG)
+	}
 
+	runner := code.NewRunner(pathToRunner)
 	e := echo.New()
 	e.Use(mw.Logger())
 	e.Get("/", func(c *echo.Context) error {
