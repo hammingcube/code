@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>ACE in Action</title>
+	<style type="text/css" media="screen">
+	    #editor { 
+	    	width: 500px;
+	    	height: 500px;
+	    }
+	   	#editor2 { 
+	    	width: 500px;
+	    	height: 500px;
+	    }
+	    .row {
+	  		width: 100%;
+	  		//text-align: center; // center the content of the container
+		}
+
+		.block {
+	  		width: 100px;
+	  		display: inline-block; // display inline with abality to provide width/height
+		}
+	</style>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.js" type="text/javascript" charset="utf-8"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/ace.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		var language_map = {
+			"c_cpp": "cpp"
+		}
+		function getRequestData(editor) {
+			var data = {};
+			data.language = undefined;
+			data.files = undefined;
+			var selected = $( "#lang" ).val();
+			console.log(selected);
+			if (selected in language_map) {
+				data.language = language_map[selected];
+				content = editor.getValue();
+				name = "main.cpp"
+				data.files = [{"content": content, "name": name}]
+				console.log(JSON.stringify(data));
+			}
+			return data;
+		}
+		$(document).ready(function(){
+		    $("#run").click(function(){
+		    	$.ajax({
+		    		type: "POST",
+		    		url: "/run",
+    				// The key needs to match your method's input parameter (case-sensitive).
+    				data: JSON.stringify(getRequestData(editor)),
+    				contentType: "application/json; charset=utf-8",
+    				dataType: "json",
+    				success: function(data){editor2.setValue(JSON.stringify(data), 1);},
+    				failure: function(errMsg) {
+        				editor2.setValue(JSON.stringify(errMsg));
+    				}
+				});
+		    });
+		});
+	</script>
+</head>
+<body>
+	<div class="row">
+		<div class="block" id="editor">
+		</div>
+		<div class="block" id="editor2">
+			{"foo": {"bar": [1, 2, 3]}}
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="block" id="run"><button>Run</button></div>
+		<div class="block">
+			<select id="lang">
+				<option value="c_cpp" selected="selected">C++</option>
+	    		<option value="javascript">Javascript</option>
+			</select>
+		</div>
+	</div>
+
+	<script>
+	    editor = ace.edit("editor");
+	    editor.setTheme("ace/theme/monokai");
+	    editor.getSession().setMode("ace/mode/c_cpp");
+	    var code = String.raw`# include <iostream>
+using namespace std;
+int main() {
+	cout << "Hello world" << endl;
+	return 0;		
+}`;
+	    editor.setValue(code, 1);
+
+	    editor2 = ace.edit("editor2");
+	    editor2.setTheme("ace/theme/monokai");
+	    editor2.getSession().setMode("ace/mode/json");
+	    editor2.setReadOnly(true);
+	</script>
+
+	<script>
+	$( "#lang" ).change(function() {
+	  editor.getSession().setMode("ace/mode/" + $(this).val());
+
+	});
+	</script>
+</body>
+</html>

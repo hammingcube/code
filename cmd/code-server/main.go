@@ -41,10 +41,8 @@ func main() {
 	runner := code.NewRunner(pathToRunner)
 	e := echo.New()
 	e.Use(mw.Logger())
-	e.Get("/", func(c *echo.Context) error {
-		return c.String(http.StatusOK, "All good")
-	})
-	e.Post("/build", func(c *echo.Context) error {
+	e.Index("index.html")
+	e.Post("/run", func(c *echo.Context) error {
 		input := &code.Input{}
 		err := decodeJsonPayload(c.Request(), input)
 		if err != nil {
