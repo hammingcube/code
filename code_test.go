@@ -77,24 +77,11 @@ public class MainClass {
 }
 `
 
-func makeInput(language, name, content string) *Input {
-	return &Input{
-		Language: language,
-		Files: []File{
-			File{
-				Name:    name,
-				Content: content,
-			},
-			STDIN_EXAMPLE,
-		},
-	}
-}
-
 var TEST_CASES = []testpair{
-	{makeInput("python", "main.py", PY_CODE), EXPECTED_OUTPUT},
-	{makeInput("cpp", "main.cpp", CPP_CODE), EXPECTED_OUTPUT},
-	{makeInput("go", "main.go", GO_CODE), EXPECTED_OUTPUT},
-	{makeInput("javascript", "main.js", JAVASCRIPT_CODE), EXPECTED_OUTPUT},
+	{MakeInput("python", "main.py", PY_CODE, STDIN_EXAMPLE), EXPECTED_OUTPUT},
+	{MakeInput("cpp", "main.cpp", CPP_CODE, STDIN_EXAMPLE), EXPECTED_OUTPUT},
+	{MakeInput("go", "main.go", GO_CODE, STDIN_EXAMPLE), EXPECTED_OUTPUT},
+	{MakeInput("javascript", "main.js", JAVASCRIPT_CODE, STDIN_EXAMPLE), EXPECTED_OUTPUT},
 	//{makeInput("java", "MainClass.java", JAVA_CODE), EXPECTED_OUTPUT},
 }
 

@@ -114,3 +114,23 @@ func (r *Runner) Run(input *Input) (*Output, error) {
 	}
 	return output, nil
 }
+
+func StdinFile(content string) File {
+	return File{
+		Name:    "_stdin_",
+		Content: content,
+	}
+}
+
+func MakeInput(language, name, content string, input File) *Input {
+	return &Input{
+		Language: language,
+		Files: []File{
+			File{
+				Name:    name,
+				Content: content,
+			},
+			input,
+		},
+	}
+}
