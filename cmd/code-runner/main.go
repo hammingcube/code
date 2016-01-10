@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/maddyonline/code"
+	"os"
 )
 
 const stdin = `{
@@ -22,7 +23,7 @@ const stdin = `{
 
 func main() {
 	var pathToRunner string
-	flag.StringVar(&pathToRunner, "runner", ".", "path to runner binary")
+	flag.StringVar(&pathToRunner, "runner", os.Getenv("RUNNER_BINARY"), "path to runner binary")
 	flag.Parse()
 	runner := code.NewRunner(pathToRunner)
 
