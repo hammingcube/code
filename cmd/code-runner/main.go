@@ -85,52 +85,9 @@ func runIt(runner *code.Runner) {
 	}
 }
 
-func process(output *code.Output, err error) {
-	if err != nil {
-		log.Info("%v", err)
-	} else {
-		log.Info("%#v", output)
-	}
-}
-
 func mainRun(runner *code.Runner) {
-	gen := []chan *code.Output{
-		make(chan *code.Output),
-		make(chan *code.Output),
-	}
-	results := make(chan struct {
-		InputStr *string
-		Output   *code.Output
-	}, 2)
-	go func() {
-		input := code.MakeInput("cpp", "main.cpp", GEN_CODE, code.StdinFile(""))
-		output, err := runner.Run(input)
-		process(output, err)
-		go func() { gen[0] <- output }()
-		go func() { gen[1] <- output }()
-	}()
-	for i := 0; i < 2; i++ {
-		go func(i int) {
-			log.Info("Using index: %d\n", i)
-			genOutput := <-gen[i]
-			input := code.MakeInput("cpp", "main.cpp", CODES[i], code.StdinFile(genOutput.Stdout))
-			output, err := runner.Run(input)
-			process(output, err)
-			results <- struct {
-				InputStr *string
-				Output   *code.Output
-			}{&genOutput.Stdout, output}
-		}(i)
-	}
-	out1, out2 := <-results, <-results
-
-	if diff(out1.Output.Stdout, out2.Output.Stdout) {
-		log.Info("Different on input %q: %q %q", *out1.InputStr, out1.Output.Stdout, out2.Output.Stdout)
-	} else {
-		log.Info("Identical on input %q", *out1.InputStr)
-	}
-}
-
-func diff(a, b string) bool {
-	return a != b
+	inputGen := code.MakeInput("cpp", "main.cpp", GEN_CODE, code.StdinFile(""))
+	inputCode1 := code.MakeInput("cpp", "main.cpp", CODES[0], code.StdinFile(""))
+	inputCode2 := code.MakeInput("cpp", "main.cpp", CODES[1], code.StdinFile(""))
+	code.Evaluate(inputGen, inputCode1, inputCode2, runner)
 }

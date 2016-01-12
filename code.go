@@ -76,8 +76,9 @@ func NewRunner(pathToRunner string) *Runner {
 }
 
 func (r *Runner) Run(input *Input) (*Output, error) {
+	log.Info("Starting run...")
 	if IsNotSupported(input.Language) {
-		return &Output{Error: "Language not supported"}, nil
+		return &Output{}, errors.New(fmt.Sprintf("Language %s not supported", input.Language))
 	}
 	dockerImg := languages[input.Language].DockerImage
 	inputBytes, err := json.Marshal(input)
@@ -122,6 +123,17 @@ func StdinFile(content string) File {
 	}
 }
 
+func UpdateStdin(input *Input, stdinFile File) {
+	for _, file := range input.Files {
+		if file.Name == "_stdin_" {
+			file.Content = stdinFile.Content
+			return
+		}
+	}
+	input.Files = append(input.Files, stdinFile)
+	return
+}
+
 func MakeInput(language, name, content string, input File) *Input {
 	return &Input{
 		Language: language,
@@ -132,5 +144,56 @@ func MakeInput(language, name, content string, input File) *Input {
 			},
 			input,
 		},
+	}
+}
+
+func Evaluate(inputGen, inputCode1, inputCode2 *Input, runner *Runner) {
+	gen := []chan *Output{
+		make(chan *Output),
+		make(chan *Output),
+	}
+	results := make(chan struct {
+		InputStr *string
+		Output   *Output
+	}, 2)
+	go func() {
+		output, err := runner.Run(inputGen)
+		process(output, err)
+		go func() { gen[0] <- output }()
+		go func() { gen[1] <- output }()
+	}()
+	inputs := []*Input{inputCode1, inputCode2}
+	for i := 0; i < 2; i++ {
+		go func(i int) {
+			log.Info("Using index: %d\n", i)
+			genOutput := <-gen[i]
+			input := inputs[i]
+			UpdateStdin(input, StdinFile(genOutput.Stdout))
+			output, err := runner.Run(input)
+			process(output, err)
+			results <- struct {
+				InputStr *string
+				Output   *Output
+			}{&genOutput.Stdout, output}
+		}(i)
+	}
+	out1, out2 := <-results, <-results
+
+	if diff(out1.Output.Stdout, out2.Output.Stdout) {
+		log.Info("Different on input %q: %q %q", *out1.InputStr, out1.Output.Stdout, out2.Output.Stdout)
+	} else {
+		log.Info("Identical on input %q", *out1.InputStr)
+	}
+}
+
+func diff(a, b string) bool {
+	return a != b
+}
+
+func process(output *Output, err error) {
+	if err != nil {
+		log.Info("%v", err)
+	} else {
+		log.Info("%#v", output)
 	}
 }
