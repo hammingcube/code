@@ -149,7 +149,11 @@ func MakeInput(language, name, content string, input File) *Input {
 	}
 }
 
-func Evaluate(inputGen, inputCode1, inputCode2 *Input, runner *Runner) {
+type Result struct {
+	Correct bool
+}
+
+func Evaluate(inputGen, inputCode1, inputCode2 *Input, runner *Runner) *Result {
 	gen := []chan *Output{
 		make(chan *Output),
 		make(chan *Output),
@@ -183,8 +187,10 @@ func Evaluate(inputGen, inputCode1, inputCode2 *Input, runner *Runner) {
 
 	if diff(out1.Output.Stdout, out2.Output.Stdout) {
 		log.Info("Different on input %q: %q %q", *out1.InputStr, out1.Output.Stdout, out2.Output.Stdout)
+		return &Result{false}
 	} else {
 		log.Info("Identical on input %q", *out1.InputStr)
+		return &Result{true}
 	}
 }
 
