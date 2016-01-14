@@ -14,6 +14,8 @@ import (
 type File struct {
 	Name    string
 	Content string
+	Id      string `json:"id"`
+	Sha     string `json:"sha"`
 }
 
 type Input struct {
