@@ -42,6 +42,9 @@ func main() {
 	flag.Parse()
 	runner := code.NewRunner(pathToRunner)
 	id := "4f1bae999b5fbea43624"
+	if len(flag.Args()) > 0 {
+		id = flag.Args()[0]
+	}
 	mainRun(id, runner)
 }
 
