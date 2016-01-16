@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-type Eval struct {
+type EvalContext struct {
 	Generator *Input `json:"generator"`
 	Solution  *Input `json:"solution"`
 	Test      *Input `json:"test"`
@@ -16,6 +16,9 @@ type Eval struct {
 func updateInput(client *github.Client, gist *github.Gist, inputs ...*Input) {
 	for _, input := range inputs {
 		log.Info("Input: %+v\n", input)
+		if input == nil {
+			continue
+		}
 		for i, file := range input.Files {
 			log.Info("%+v", file)
 			if file.Content == "" {
@@ -55,7 +58,7 @@ func fetchFile(client *github.Client, id, sha, filename string) (*github.Gist, *
 	return gist, nil, ErrNotFound
 }
 
-func GistEvaluate(id string, runner *Runner) *Result {
+func GistFetch(id string) *EvalContext {
 	client := github.NewClient(nil)
 	gist, file, err := fetchFile(client, id, "", "eval.json")
 	if err != nil {
@@ -63,13 +66,17 @@ func GistEvaluate(id string, runner *Runner) *Result {
 	}
 	log.Info("%+v", file)
 
-	v := &Eval{}
+	v := &EvalContext{}
 	err = json.Unmarshal([]byte(file.Content), v)
 	log.Info("%+v\n", v)
 	log.Info("%+v\n %+v\n %+v\n", v.Generator, v.Solution, v.Test)
 	updateInput(client, gist, v.Generator, v.Solution, v.Test)
-	log.Info("%s %s %s", v.Generator, v.Solution, v.Test)
-	result := Evaluate(v.Generator, v.Solution, v.Test, runner)
+	return &EvalContext{v.Generator, v.Solution, v.Test}
+}
+
+func GistEvaluate(id string, runner *Runner) *Result {
+	evalContext := GistFetch(id)
+	result := Evaluate(evalContext.Generator, evalContext.Solution, evalContext.Test, runner)
 	log.Info("Result: %v", result.Correct)
 	return result
 }

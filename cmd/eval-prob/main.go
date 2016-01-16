@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/maddyonline/code"
+	"github.com/zabawaba99/firego"
+	"log"
 	"os"
 )
 
@@ -12,14 +14,16 @@ func main() {
 	flag.StringVar(&pathToRunner, "runner", os.Getenv("RUNNER_BINARY"), "path to runner binary")
 	flag.Parse()
 	runner := code.NewRunner(pathToRunner)
-	id := "4f1bae999b5fbea43624"
-	if len(flag.Args()) > 0 {
-		id = flag.Args()[0]
+
+	fb := firego.New("https://thinkhike.firebaseio.com/problems", nil)
+	problems := map[string]string{}
+
+	if err := fb.Value(&problems); err != nil {
+		log.Fatal(err)
 	}
+	fmt.Printf("%s\n", problems)
 	if runner != nil && false {
-		fmt.Printf("%s", code.GistEvaluate(id, runner))
-	} else {
-		evalContext := code.GistFetch(id)
-		fmt.Printf("%s", evalContext)
 	}
+	ec := code.GistFetch(problems["prob-1"])
+	fmt.Printf("%#v", ec)
 }
