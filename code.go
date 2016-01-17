@@ -126,9 +126,9 @@ func StdinFile(content string) File {
 }
 
 func UpdateStdin(input *Input, stdinFile File) {
-	for _, file := range input.Files {
+	for i, file := range input.Files {
 		if file.Name == "_stdin_" {
-			file.Content = stdinFile.Content
+			input.Files[i].Content = stdinFile.Content
 			return
 		}
 	}
@@ -171,10 +171,14 @@ func Evaluate(inputGen, inputCode1, inputCode2 *Input, runner *Runner) *Result {
 	inputs := []*Input{inputCode1, inputCode2}
 	for i := 0; i < 2; i++ {
 		go func(i int) {
-			log.Info("Using index: %d\n", i)
 			genOutput := <-gen[i]
 			input := inputs[i]
+			log.Info("Using index: %d", i)
+			log.Info("Code: %q", input.Files[0].Content)
+			log.Info("Want: %q", genOutput.Stdout)
+			log.Info("Before: %#v", input)
 			UpdateStdin(input, StdinFile(genOutput.Stdout))
+			log.Info("After: %#v", input)
 			output, err := runner.Run(input)
 			process(output, err)
 			results <- struct {

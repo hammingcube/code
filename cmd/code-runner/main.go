@@ -26,42 +26,104 @@ var STDIN_EXAMPLE = code.File{
 }
 
 const GEN_CODE = `
-# include <iostream>
-# include <vector>
-using namespace std;
-int main() {
-	vector<string> vec({"ab", "hello", "really"});
-	for(auto & v: vec) {
-		cout << v << endl;
-	}
+// Copyright (c) 2015 Elements of Programming Interviews. All rights reserved.
 
+#include <cassert>
+#include <iostream>
+#include <random>
+#include <string>
+
+using std::boolalpha;
+using std::cout;
+using std::default_random_engine;
+using std::endl;
+using std::random_device;
+using std::string;
+using std::uniform_int_distribution;
+
+string RandString(int len) {
+  string ret;
+  default_random_engine gen((random_device())());
+  while (len--) {
+    uniform_int_distribution<int> dis('a', 'z');
+    ret += dis(gen);
+  }
+  return ret;
+}
+
+int main(int argc, char *argv[]) {
+  default_random_engine gen((random_device())());
+  for (int times = 0; times < 100; ++times) {
+    string s;
+    if (argc == 2) {
+      s = argv[1];
+    } else {
+      uniform_int_distribution<int> dis(1, 10);
+      s = RandString(dis(gen));
+    }
+    cout << s << endl;
+  }
+  return 0;
 }
 `
 
 const CODE1 = `
-# include <iostream>
-# include <vector>
-using namespace std;
+#include <algorithm>
+#include <string>
+#include <iostream>
+
+using std::string;
+
+// Please update the following function
+bool CanStringBeAPalindrome(string* s) {
+  return false;
+}
+
 int main() {
-	string s;
-	while(cin >> s) {
-		cout << s.size() << endl;
-	}
+    string s;
+    while(std::cin >> s) {
+        std::cout << CanStringBeAPalindrome(&s) << std::endl;
+    }
+    return 0;
 }
 `
 
 const CODE2 = `
-# include <iostream>
-# include <vector>
-using namespace std;
+#include <algorithm>
+#include <string>
+#include <iostream>
+
+using std::string;
+
+bool CanStringBeAPalindrome(string* s) {
+  sort(s->begin(), s->end());
+  int odd_count = 0, num_curr_char = 1;
+
+  for (int i = 1; i < s->size() && odd_count <= 1; ++i) {
+    if ((*s)[i] != (*s)[i - 1]) {
+      if (num_curr_char % 2) {
+        ++odd_count;
+      }
+      num_curr_char = 1;
+    } else {
+      ++num_curr_char;
+    }
+  }
+  if (num_curr_char % 2) {
+    ++odd_count;
+  }
+
+  // A string can be permuted as a palindrome if the number of odd time
+  // chars <= 1.
+  return odd_count <= 1;
+}
+
 int main() {
-	string s;
-	while(cin >> s) {
-		const char * str = s.c_str();
-		int count = 0;
-		for(const char *ptr = str; *ptr != '\0'; ptr++, count++);
-		cout << count << endl;
-	}
+    string s;
+    while(std::cin >> s) {
+        std::cout << CanStringBeAPalindrome(&s) << std::endl;
+    }
+    return 0;
 }
 `
 
