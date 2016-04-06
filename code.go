@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/labstack/gommon/log"
+	"github.com/maddyonline/glot-code-runner/runlib"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -77,7 +78,31 @@ func NewRunner(pathToRunner string) *Runner {
 	return &Runner{RunnerBinary: dir}
 }
 
+func (r *Runner) RunLocal(input *Input) (*Output, error) {
+	log.Info("Starting local run...")
+	if IsNotSupported(input.Language) {
+		return &Output{}, errors.New(fmt.Sprintf("Language %s not supported", input.Language))
+	}
+	inputBytes, err := json.Marshal(input)
+	if err != nil {
+		return nil, err
+	}
+	inputStream := bytes.NewReader([]byte(inputBytes))
+	outputStream := &bytes.Buffer{}
+
+	runlib.Run(inputStream, outputStream)
+
+	output := &Output{}
+	err = json.Unmarshal(outputStream.Bytes(), &output)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+
+}
+
 func (r *Runner) Run(input *Input) (*Output, error) {
+	return r.RunLocal(input)
 	log.Info("Starting run...")
 	if IsNotSupported(input.Language) {
 		return &Output{}, errors.New(fmt.Sprintf("Language %s not supported", input.Language))
