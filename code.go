@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"github.com/labstack/gommon/log"
 	"github.com/maddyonline/glot-code-runner/runlib"
-	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 type File struct {
@@ -103,44 +101,6 @@ func (r *Runner) RunLocal(input *Input) (*Output, error) {
 
 func (r *Runner) Run(input *Input) (*Output, error) {
 	return r.RunLocal(input)
-	log.Info("Starting run...")
-	if IsNotSupported(input.Language) {
-		return &Output{}, errors.New(fmt.Sprintf("Language %s not supported", input.Language))
-	}
-	dockerImg := languages[input.Language].DockerImage
-	inputBytes, err := json.Marshal(input)
-	if err != nil {
-		return nil, err
-	}
-	workDir, _ := filepath.Abs(".")
-	runnerDir := filepath.Dir(r.RunnerBinary)
-	runnerBinary := filepath.Join("/runner", filepath.Base(r.RunnerBinary))
-	args := []string{
-		"docker", "run", "--rm", "-i",
-		"-v", fmt.Sprintf("%s:/app", workDir), // Mounted Work Directory
-		"-v", fmt.Sprintf("%s:/runner", runnerDir), // Mounted Runner Directory
-		"-w", "/app",
-		dockerImg,
-		runnerBinary}
-	log.Info("Cmd: %s", strings.Join(args, " "))
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Dir = workDir
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	cmd.Stdin = bytes.NewReader([]byte(inputBytes))
-	log.Debug("Stdin: %s", inputBytes)
-	err = cmd.Run()
-	if stderr.String() != "" || err != nil {
-		return nil, errors.New(fmt.Sprintf(`{"_cmd_stderr": %q, "_cmd_err": "%v"}`, stderr.String(), err))
-	}
-	output := &Output{}
-	err = json.Unmarshal(stdout.Bytes(), &output)
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
 }
 
 func StdinFile(content string) File {
